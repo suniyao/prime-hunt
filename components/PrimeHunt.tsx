@@ -1,39 +1,30 @@
 'use client';
-import React, { useEffect, useState } from 'react';
-var seedrandom = require('seedrandom')
+import React, { useEffect, useState, useRef } from 'react';
 
-const GRID_SIZE = 4;
-const today = new Date();
-const seed = today.toISOString().slice(0, 10); // gives "YYYY-MM-DD"
-// seed to "2025-07-21"
+const GRID_SIZE = 5;
 
 const isPrime = (num: number) => {
   if (num < 2) return false;
-  for (let i = 2; i * i <= num; i++)
-    if (num % i === 0) return false;
+  for (let i = 2; i * i <= num; i++) if (num % i === 0) return false;
   return true;
 };
 
-const generateGrid = () => {
-  const rng = seedrandom(seed);
-  const grid = [];
-  for (let i = 0; i < GRID_SIZE; i++) {
-    const row = [];
-    for (let j = 0; j < GRID_SIZE; j++) {
-      row.push(Math.floor(rng() * 10));
-    }
-    grid.push(row);
-  }
-  return grid;
-};
+type Pos = { row: number; col: number };
 
 const PrimeHunt = () => {
   const [grid, setGrid] = useState<number[][]>([]);
-  const [path, setPath] = useState<{ row: number; col: number }[]>([]);
+  const [path, setPath] = useState<Pos[]>([]);
   const [found, setFound] = useState<Set<string>>(new Set());
+  const [seed, setSeed] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    setGrid(generateGrid());
+    fetch('/api/grid')
+      .then(res => res.json())
+      .then(data => {
+        setGrid(data.grid);
+        setSeed(data.seed);
+      });
   }, []);
 
   const inBounds = (r: number, c: number) => r >= 0 && c >= 0 && r < GRID_SIZE && c < GRID_SIZE;
@@ -68,35 +59,99 @@ const PrimeHunt = () => {
 
   const isInPath = (r: number, c: number) => path.some(p => p.row === r && p.col === c);
 
+  const currentNum = path.map(p => grid[p.row][p.col]).join('');
+  const currentIsPrime = isPrime(parseInt(currentNum || '0'));
+
+  // Convert grid cell position to pixel center
+  const getCenterOfCell = (row: number, col: number) => {
+    const cellSize = 64; // Tailwind w-16 h-16 = 4rem = 64px
+    return {
+      x: col * (cellSize + 4) + cellSize / 2,
+      y: row * (cellSize + 4) + cellSize / 2,
+    };
+  };
+
   return (
     <div className="flex flex-col items-center justify-center p-4 select-none">
       <h1 className="text-2xl font-bold mb-4">Prime Hunt</h1>
+
       <div
-        className="grid gap-1"
-        style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, 4rem)` }}
+        className="relative"
+        ref={containerRef}
         onPointerUp={handlePointerUp}
+        style={{
+          width: GRID_SIZE * 68, // 64px + 4px gap
+          height: GRID_SIZE * 68,
+        }}
       >
-        {grid.map((row, i) =>
-          row.map((val, j) => (
-            <div
-              key={`${i}-${j}`}
-              onPointerDown={() => handlePointerDown(i, j)}
-              onPointerEnter={(e) => {
-                if (e.buttons === 1) handlePointerEnter(i, j);
-              }}
-              className={`w-16 h-16 flex items-center justify-center text-2xl font-mono border 
-                ${isInPath(i, j) ? 'bg-blue-200' : 'bg-white'} 
-                ${found.has(`${val}`) ? 'opacity-50' : ''}`}
-            >
-              {val}
-            </div>
-          ))
-        )}
+        {/* SVG for trace line */}
+        <svg
+          className="absolute top-0 left-0 pointer-events-none"
+          width={GRID_SIZE * 68}
+          height={GRID_SIZE * 68}
+        >
+          {path.length >= 2 &&
+            path.map((p, i) => {
+              if (i === 0) return null;
+              const from = getCenterOfCell(path[i - 1].row, path[i - 1].col);
+              const to = getCenterOfCell(p.row, p.col);
+              return (
+                <line
+                  key={i}
+                  x1={from.x}
+                  y1={from.y}
+                  x2={to.x}
+                  y2={to.y}
+                  stroke="#4b5563"
+                  strokeWidth={4}
+                  strokeLinecap="round"
+                />
+              );
+            })}
+        </svg>
+
+        {/* Grid */}
+        <div
+          className="grid gap-1"
+          style={{
+            gridTemplateColumns: `repeat(${GRID_SIZE}, 4rem)`,
+            gridTemplateRows: `repeat(${GRID_SIZE}, 4rem)`,
+          }}
+        >
+          {grid.map((row, i) =>
+            row.map((val, j) => {
+              const inPath = isInPath(i, j);
+              const bg =
+                inPath && path.length > 0
+                  ? currentIsPrime
+                    ? 'bg-green-200'
+                    : 'bg-red-200'
+                  : 'bg-white';
+              return (
+                <div
+                  key={`${i}-${j}`}
+                  onPointerDown={() => handlePointerDown(i, j)}
+                  onPointerEnter={(e) => {
+                    if (e.buttons === 1) handlePointerEnter(i, j);
+                  }}
+                  className={`w-16 h-16 flex items-center justify-center text-2xl font-mono border ${bg}`}
+                >
+                  {val}
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
 
       {path.length > 0 && (
         <div className="mt-4 text-xl font-mono">
-          Number: {path.map(p => grid[p.row][p.col]).join('')}
+          Number: {currentNum}{' '}
+          {currentNum && (
+            <span className={currentIsPrime ? 'text-green-600' : 'text-red-600'}>
+              ({currentIsPrime ? 'Prime' : 'Not Prime'})
+            </span>
+          )}
         </div>
       )}
 

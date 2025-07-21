@@ -1,0 +1,1 @@
+a daily game developed for toybox.hackclub.com

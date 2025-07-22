@@ -27,7 +27,7 @@ const PrimeHunt = () => {
 
   useEffect(() => {
     if (justFoundPrime) {
-      const timer = setTimeout(() => setJustFoundPrime(false), 800);
+      const timer = setTimeout(() => setJustFoundPrime(false), 500);
       return () => clearTimeout(timer);
     }
   }, [justFoundPrime]);
@@ -64,30 +64,29 @@ const PrimeHunt = () => {
     setPath(prev => [...prev, { row: r, col: c }]);
   };
 
+  const isInPath = (r: number, c: number) => path.some(p => p.row === r && p.col === c);
+
+  const currentNumStr = path.map(p => grid[p.row][p.col]).join('');
+  const currentNum = parseInt(currentNumStr, 10);
+  const parsedCurrentNum = currentNum.toString();
+  const isCurrentPrime = isPrime(currentNum);
+  const isDuplicate = found.has(parsedCurrentNum);
+
   const handlePointerUp = () => {
-    const numStr = path.map(p => grid[p.row][p.col]).join('');
-    const num = parseInt(numStr, 10);
-    if (isPrime(num)) {
-      setFound(prev => new Set(prev).add(numStr));
-      console.log('PRIME:', num);
+    if (isPrime(currentNum)) {
+      setFound(prev => new Set(prev).add(parsedCurrentNum));
+      console.log('PRIME:', parsedCurrentNum);
       if (!isDuplicate){
-        setScore(score + getScore(numStr));
+        setScore(score + getScore(parsedCurrentNum));
         setNumOfPrimes(numOfPrimes + 1);
         setJustFoundPrime(true);
         audioRef.current?.play();
       }
     } else {
-      console.log('Not prime:', num);
+      console.log('Not prime:', parsedCurrentNum);
     }
     setPath([]);
   };
-
-  const isInPath = (r: number, c: number) => path.some(p => p.row === r && p.col === c);
-
-  const currentNumStr = path.map(p => grid[p.row][p.col]).join('');
-  const currentNum = parseInt(currentNumStr, 10);
-  const isCurrentPrime = isPrime(currentNum);
-  const isDuplicate = found.has(currentNumStr);
 
   // Convert grid cell position to pixel center
   const getCenterOfCell = (row: number, col: number) => {

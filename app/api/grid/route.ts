@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 var seedrandom = require('seedrandom')
 
-const GRID_SIZE = 5;
 
 export async function GET() {
+  const GRID_SIZE = 5;
   // Dynamically generate seed from today's date
   const today = new Date();
   const seed = today.toISOString().slice(0, 10); // 'YYYY-MM-DD'
@@ -21,5 +21,5 @@ export async function GET() {
     grid.push(row);
   }
 
-  return NextResponse.json({ grid, seed });
+  return NextResponse.json({ grid, seed, GRID_SIZE });
 }

@@ -1,7 +1,7 @@
 'use client';
-import React, { useEffect, useState, useRef } from 'react';
 
-const GRID_SIZE = 5;
+import { useEffect, useRef, useState } from 'react';
+import clsx from 'clsx';
 
 const isPrime = (num: number) => {
   if (num < 2) return false;
@@ -13,10 +13,11 @@ type Pos = { row: number; col: number };
 
 const PrimeHunt = () => {
   const [grid, setGrid] = useState<number[][]>([]);
-  const [path, setPath] = useState<Pos[]>([]);
-  const [found, setFound] = useState<Set<string>>(new Set());
+  const [gridSize, setGridSize] = useState<number>(NaN);
   const [seed, setSeed] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const [path, setPath] = useState<Pos[]>([]);
+  const [found, setFound] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetch('/api/grid')
@@ -24,10 +25,15 @@ const PrimeHunt = () => {
       .then(data => {
         setGrid(data.grid);
         setSeed(data.seed);
+        setGridSize(data.GRID_SIZE);
       });
   }, []);
 
-  const inBounds = (r: number, c: number) => r >= 0 && c >= 0 && r < GRID_SIZE && c < GRID_SIZE;
+  if (isNaN(gridSize)) {
+    return <div>Loading...</div>; // optional
+  }
+
+  const inBounds = (r: number, c: number) => r >= 0 && c >= 0 && r < gridSize && c < gridSize;
 
   const isAdjacent = (r: number, c: number) => {
     if (path.length === 0) return true;
@@ -59,8 +65,10 @@ const PrimeHunt = () => {
 
   const isInPath = (r: number, c: number) => path.some(p => p.row === r && p.col === c);
 
-  const currentNum = path.map(p => grid[p.row][p.col]).join('');
-  const currentIsPrime = isPrime(parseInt(currentNum || '0'));
+  const currentNumStr = path.map(p => grid[p.row][p.col]).join('');
+  const currentNum = parseInt(currentNumStr, 10);
+  const isCurrentPrime = isPrime(currentNum);
+  const isDuplicate = found.has(currentNumStr);
 
   // Convert grid cell position to pixel center
   const getCenterOfCell = (row: number, col: number) => {
@@ -80,15 +88,14 @@ const PrimeHunt = () => {
         ref={containerRef}
         onPointerUp={handlePointerUp}
         style={{
-          width: GRID_SIZE * 68, // 64px + 4px gap
-          height: GRID_SIZE * 68,
+          width: gridSize * 68,
+          height: gridSize * 68,
         }}
       >
-        {/* SVG for trace line */}
         <svg
           className="absolute top-0 left-0 pointer-events-none"
-          width={GRID_SIZE * 68}
-          height={GRID_SIZE * 68}
+          width={gridSize * 68}
+          height={gridSize * 68}
         >
           {path.length >= 2 &&
             path.map((p, i) => {
@@ -114,8 +121,8 @@ const PrimeHunt = () => {
         <div
           className="grid gap-1"
           style={{
-            gridTemplateColumns: `repeat(${GRID_SIZE}, 4rem)`,
-            gridTemplateRows: `repeat(${GRID_SIZE}, 4rem)`,
+            gridTemplateColumns: `repeat(${gridSize}, 4rem)`,
+            gridTemplateRows: `repeat(${gridSize}, 4rem)`,
           }}
         >
           {grid.map((row, i) =>
@@ -123,7 +130,7 @@ const PrimeHunt = () => {
               const inPath = isInPath(i, j);
               const bg =
                 inPath && path.length > 0
-                  ? currentIsPrime
+                  ? isCurrentPrime
                     ? 'bg-green-200'
                     : 'bg-red-200'
                   : 'bg-white';
@@ -134,7 +141,17 @@ const PrimeHunt = () => {
                   onPointerEnter={(e) => {
                     if (e.buttons === 1) handlePointerEnter(i, j);
                   }}
-                  className={`w-16 h-16 flex items-center justify-center text-2xl font-mono border ${bg}`}
+                  className={clsx(
+                    'w-16 h-16 flex items-center justify-center text-2xl font-mono border',
+                    isInPath(i, j) &&
+                      (isDuplicate
+                        ? 'bg-yellow-200'
+                        : isCurrentPrime
+                        ? 'bg-green-200'
+                        : 'bg-red-200'),
+                    !isInPath(i, j) && 'bg-white',
+                    found.has(`${grid[i][j]}`) && 'opacity-50'
+                  )}
                 >
                   {val}
                 </div>
@@ -148,8 +165,8 @@ const PrimeHunt = () => {
         <div className="mt-4 text-xl font-mono">
           Number: {currentNum}{' '}
           {currentNum && (
-            <span className={currentIsPrime ? 'text-green-600' : 'text-red-600'}>
-              ({currentIsPrime ? 'Prime' : 'Not Prime'})
+            <span className={isCurrentPrime ? 'text-green-600' : 'text-red-600'}>
+              ({isCurrentPrime ? 'Prime' : 'Not Prime'})
             </span>
           )}
         </div>

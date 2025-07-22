@@ -2,12 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
-
-const isPrime = (num: number) => {
-  if (num < 2) return false;
-  for (let i = 2; i * i <= num; i++) if (num % i === 0) return false;
-  return true;
-};
+import { getScore } from '@/utils/score';
+import { isPrime } from '@/utils/isPrime';
+import ScoreBar from './ScoreBar';
+const correctSound = '/correct.mp3';
 
 type Pos = { row: number; col: number };
 
@@ -18,6 +16,21 @@ const PrimeHunt = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [path, setPath] = useState<Pos[]>([]);
   const [found, setFound] = useState<Set<string>>(new Set());
+  const [score, setScore] = useState<number>(0);
+  const [numOfPrimes, setNumOfPrimes] = useState<number>(0);
+  const [justFoundPrime, setJustFoundPrime] = useState(false);
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  useEffect(() => {
+    audioRef.current = new Audio(correctSound);
+  }, [])
+
+  useEffect(() => {
+    if (justFoundPrime) {
+      const timer = setTimeout(() => setJustFoundPrime(false), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [justFoundPrime]);
 
   useEffect(() => {
     fetch('/api/grid')
@@ -57,6 +70,12 @@ const PrimeHunt = () => {
     if (isPrime(num)) {
       setFound(prev => new Set(prev).add(numStr));
       console.log('PRIME:', num);
+      if (!isDuplicate){
+        setScore(score + getScore(numStr));
+        setNumOfPrimes(numOfPrimes + 1);
+        setJustFoundPrime(true);
+        audioRef.current?.play();
+      }
     } else {
       console.log('Not prime:', num);
     }
@@ -79,12 +98,41 @@ const PrimeHunt = () => {
     };
   };
 
+
   return (
     <div className="flex flex-col items-center justify-center p-4 select-none">
+      <ScoreBar score={score} numOfPrimes={numOfPrimes}/>
       <h1 className="text-2xl font-bold mb-4">Prime Hunt</h1>
+      <div className="mt-4 min-h-[3rem] text-xl transition-all duration-300">
+      {currentNumStr ? (
+        <div
+          className={clsx(
+            'inline-block font-bold px-4 py-2 rounded shadow-lg transition-all duration-300',
+            {
+              'bg-yellow-200': isDuplicate,
+              'bg-green-200 animate-pop': isCurrentPrime && !isDuplicate,
+            }
+          )}
+        >
+          Number: {currentNum}{' '}
+          <span
+            className={clsx(
+              'ml-2 transition-opacity duration-300',
+              isCurrentPrime ? 'text-green-600' : 'text-red-600'
+            )}
+          >
+            {isCurrentPrime && !isDuplicate && `(+${getScore(currentNumStr)})`}
+          </span>
+        </div>
+      ) : (
+        <div className="opacity-0">Number: </div> // keep height to prevent layout shift
+      )}
+    </div>
+
+
 
       <div
-        className="relative"
+        className="relative top-2"
         ref={containerRef}
         onPointerUp={handlePointerUp}
         style={{
@@ -102,6 +150,10 @@ const PrimeHunt = () => {
               if (i === 0) return null;
               const from = getCenterOfCell(path[i - 1].row, path[i - 1].col);
               const to = getCenterOfCell(p.row, p.col);
+
+              const currentNumber = parseInt(path.map(pos => grid[pos.row][pos.col]).join(''));
+              const isCurrentPrime = isPrime(currentNumber);
+
               return (
                 <line
                   key={i}
@@ -109,7 +161,8 @@ const PrimeHunt = () => {
                   y1={from.y}
                   x2={to.x}
                   y2={to.y}
-                  stroke="#4b5563"
+                  stroke={isCurrentPrime ? 'white' : 'red'}
+                  strokeOpacity={isCurrentPrime ? 0.7 : 0.3}
                   strokeWidth={4}
                   strokeLinecap="round"
                 />
@@ -119,58 +172,43 @@ const PrimeHunt = () => {
 
         {/* Grid */}
         <div
-          className="grid gap-1"
-          style={{
-            gridTemplateColumns: `repeat(${gridSize}, 4rem)`,
-            gridTemplateRows: `repeat(${gridSize}, 4rem)`,
-          }}
-        >
-          {grid.map((row, i) =>
-            row.map((val, j) => {
-              const inPath = isInPath(i, j);
-              const bg =
-                inPath && path.length > 0
-                  ? isCurrentPrime
-                    ? 'bg-green-200'
-                    : 'bg-red-200'
-                  : 'bg-white';
-              return (
-                <div
-                  key={`${i}-${j}`}
-                  onPointerDown={() => handlePointerDown(i, j)}
-                  onPointerEnter={(e) => {
-                    if (e.buttons === 1) handlePointerEnter(i, j);
-                  }}
-                  className={clsx(
-                    'w-16 h-16 flex items-center justify-center text-2xl font-mono border',
-                    isInPath(i, j) &&
-                      (isDuplicate
-                        ? 'bg-yellow-200'
-                        : isCurrentPrime
-                        ? 'bg-green-200'
-                        : 'bg-red-200'),
-                    !isInPath(i, j) && 'bg-white',
-                    found.has(`${grid[i][j]}`) && 'opacity-50'
-                  )}
-                >
-                  {val}
-                </div>
-              );
-            })
-          )}
-        </div>
-      </div>
+  className="grid gap-1"
+  style={{
+    gridTemplateColumns: `repeat(${gridSize}, 4rem)`,
+    gridTemplateRows: `repeat(${gridSize}, 4rem)`,
+  }}
+>
+  {grid.map((row, i) =>
+    row.map((val, j) => {
+      const inPath = isInPath(i, j);
+      // const isCurrent = inPath && path.length > 0;
+      const isFinalPrime = isCurrentPrime && !isDuplicate;
 
-      {path.length > 0 && (
-        <div className="mt-4 text-xl font-mono">
-          Number: {currentNum}{' '}
-          {currentNum && (
-            <span className={isCurrentPrime ? 'text-green-600' : 'text-red-600'}>
-              ({isCurrentPrime ? 'Prime' : 'Not Prime'})
-            </span>
+      return (
+        <div
+          key={`${i}-${j}`}
+          onPointerDown={() => handlePointerDown(i, j)}
+          onPointerEnter={(e) => {
+            if (e.buttons === 1) handlePointerEnter(i, j);
+          }}
+          className={clsx(
+            'w-16 h-16 flex items-center justify-center text-2xl font-mono border rounded transition-all duration-200',
+            {
+              'bg-yellow-200 shadow-sm shadow-black': inPath && isDuplicate,
+              'bg-green-200 shadow-sm shadow-black': inPath && isFinalPrime,
+              'bg-white-200 shadow-sm shadow-black': inPath && !isFinalPrime && !isDuplicate,
+              'bg-amber-100': !inPath,
+            }
           )}
+        >
+          {val}
         </div>
-      )}
+      );
+    })
+  )}
+</div>
+
+      </div>
 
       {found.size > 0 && (
         <div className="mt-4 text-sm text-gray-600">

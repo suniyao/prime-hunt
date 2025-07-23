@@ -3,7 +3,7 @@ var seedrandom = require('seedrandom')
 
 
 export async function GET() {
-  const GRID_SIZE = 5;
+  const GRID_SIZE = 4;
   // Dynamically generate seed from today's date
   const today = new Date();
   const seed = '2025-07-04'

@@ -7,7 +7,7 @@ type CountdownProps = {
 }
 
 export default function Countdown({duration, onEnd }: CountdownProps) {
-  duration = 10; // setup
+  duration = 90; // setup
   const [ timeLeft, setTimeLeft ] = useState(duration);
 
   useEffect(() => {

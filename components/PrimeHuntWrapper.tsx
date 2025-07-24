@@ -5,12 +5,15 @@ import PrimeHunt from "./Play"
 import Start from "./Start"
 import Play from "./Play"
 import LetterGlitch from "./LetterGlitchBackground"
-import Leaderboard from "./Leaderboard"
+import Finish from "./Finish"
 
 export default function PrimeHuntWrapper() {
-  const [phase, setPhase] = useState<'start' | 'play' | 'leaderboard'>('start');
-  const [playerName, setPlayerName] = useState('');
-  const [inputName, setInputName] = useState('');
+  const [phase, setPhase] = useState<'start' | 'play' | 'finish'>('start');
+  // const [playerName, setPlayerName] = useState('');
+  // const [inputName, setInputName] = useState('');
+  const [found, setFound] = useState<Set<string>>(new Set());
+  const [score, setScore] = useState<number>(0);
+  const [numOfPrimes, setNumOfPrimes] = useState<number>(0);
 
   return (
     <div className="relative w-full h-screen overflow-hidden">
@@ -28,8 +31,10 @@ export default function PrimeHuntWrapper() {
       {/* Foreground content */}
       <div className="absolute inset-0 z-10 flex flex-col justify-center items-center">
         {phase === 'start' && <Start phase={phase} setPhase={setPhase} />}
-        {phase === 'play' && <Play phase={phase} setPhase={setPhase} />}
-        {phase === 'leaderboard' && <Leaderboard phase={phase} setPhase={setPhase}/>}
+        {phase === 'play' && <Play phase={phase} setPhase={setPhase} found={found} setFound={setFound} 
+          numOfPrimes={numOfPrimes} setNumOfPrimes={setNumOfPrimes} score={score} setScore={setScore}/>}
+        {phase === 'finish' && <Finish phase={phase} setPhase={setPhase} found={found} setFound={setFound}
+          numOfPrimes={numOfPrimes} setNumOfPrimes={setNumOfPrimes} score={score} setScore={setScore}/>}
       </div>
     </div>
 

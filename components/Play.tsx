@@ -11,20 +11,26 @@ const correctSound = '/correct.mp3';
 type Pos = { row: number; col: number };
 
 type PlayProps = {
-  phase: 'start' | 'play' | 'leaderboard',
-  setPhase: React.Dispatch<React.SetStateAction<'start' | 'play' | 'leaderboard'>>
+  phase: 'start' | 'play' | 'finish',
+  setPhase: React.Dispatch<React.SetStateAction<'start' | 'play' | 'finish'>>
+  found: Set<string>,
+  setFound: React.Dispatch<React.SetStateAction<Set<string>>>
+  score: number,
+  setScore: React.Dispatch<React.SetStateAction<number>>
+  numOfPrimes: number, 
+  setNumOfPrimes: React.Dispatch<React.SetStateAction<number>>
+  // const [found, setFound] = useState<Set<string>>(new Set());
+  // const [score, setScore] = useState<number>(0);
+  // const [numOfPrimes, setNumOfPrimes] = useState<number>(0);
 }
 
 
-export default function Play({ phase , setPhase }: PlayProps){
+export default function Play({ phase , setPhase, found, setFound, score, setScore, numOfPrimes, setNumOfPrimes }: PlayProps){
   const [grid, setGrid] = useState<number[][]>([]);
   const [gridSize, setGridSize] = useState<number>(NaN);
   const [seed, setSeed] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [path, setPath] = useState<Pos[]>([]);
-  const [found, setFound] = useState<Set<string>>(new Set());
-  const [score, setScore] = useState<number>(0);
-  const [numOfPrimes, setNumOfPrimes] = useState<number>(0);
   const [justFoundPrime, setJustFoundPrime] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -34,7 +40,7 @@ export default function Play({ phase , setPhase }: PlayProps){
 
   useEffect(() => {
     if (justFoundPrime) {
-      const timer = setTimeout(() => setJustFoundPrime(false), 500);
+      const timer = setTimeout(() => setJustFoundPrime(false), 300);
       return () => clearTimeout(timer);
     }
   }, [justFoundPrime]);
@@ -48,6 +54,19 @@ export default function Play({ phase , setPhase }: PlayProps){
         setGridSize(data.GRID_SIZE);
       });
   }, []);
+
+  useEffect(() => {
+    const handleGlobalPointerUp = () => {
+      if (path.length > 0) {
+        handlePointerUp();
+      }
+    };
+
+    document.addEventListener('pointerup', handleGlobalPointerUp);
+    return () => {
+      document.removeEventListener('pointerup', handleGlobalPointerUp);
+    };
+  }, [path]); // re-run effect when path changes
 
   if (isNaN(gridSize)) {
     return <div>Loading...</div>; // optional
@@ -110,7 +129,7 @@ export default function Play({ phase , setPhase }: PlayProps){
       <h1 className="text-[70px] font-bold text-white">Prime Hunt</h1>
       <div className='text-white flex flex-row justify-between items-center w-80'>
         <ScoreBar score={score} numOfPrimes={numOfPrimes}/>
-        <Countdown onEnd={() => setPhase('leaderboard')}/>
+        <Countdown onEnd={() => setPhase('finish')}/>
       </div>
       <div className="min-h-[3rem] text-xl transition-all duration-300">
       {currentNumStr ? (

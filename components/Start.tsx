@@ -5,8 +5,8 @@ import Image from "next/image"
 import clsx from "clsx"
 
 type StartProps = {
-  phase: 'start' | 'play' | 'leaderboard',
-  setPhase: React.Dispatch<React.SetStateAction<'start' | 'play' | 'leaderboard'>>
+  phase: 'start' | 'play' | 'finish',
+  setPhase: React.Dispatch<React.SetStateAction<'start' | 'play' | 'finish'>>
 }
 
 export default function Start({phase, setPhase}: StartProps) {
@@ -22,7 +22,7 @@ export default function Start({phase, setPhase}: StartProps) {
       <div className="text-white text-[25px] -mt-8 font-mono h-20">
         <TypeAnimation
           sequence={[
-            'word hunt for nerds',
+            'daily word hunt puzzle for nerds',
             1000,
             'be aware of the number of primes here!',
             1000,
@@ -36,26 +36,26 @@ export default function Start({phase, setPhase}: StartProps) {
         />
       </div>
       
-      <div className="flex flex-row gap-2 text-white">
-        <input
+      <div className="flex flex-row gap-5 text-white">
+        {/* <input
           type="text"
-          placeholder="Enter your name (or stay anonymous)"
+          placeholder="Anonymous"
           className="px-4 py-2 rounded border border-gray-300 shadow-sm backdrop-blur-[2px] focus:outline-none focus:ring-2 focus:ring-green-500"
           value={name}
           onChange={(e) => setName(e.target.value)}
-        />
+        /> */}
 
         <button
           onClick={handleStart}
-          className="bg-green-400 text-black px-6 py-2 rounded font-semibold hover:shadow-green-500 transition"
+          className="bg-green-400 text-black px-6 py-2 rounded font-semibold hover:bg-black hover:text-green-400 hover:shadow-gray-400 transition"
         >
           Start Game
         </button>
-      </div>
-      <div className="flex flex-row gap-2 text-gray-400 items-center hover:underline" onClick={() => setTutorialOpen(!tutorialOpen)}>
-        <Info size={20}/>
-        <div>
-          How to play?
+        <div className="flex flex-row gap-2 text-gray-200 items-center hover:underline mt-1" onClick={() => setTutorialOpen(!tutorialOpen)}>
+          <Info size={20}/>
+          <div>
+            How to play?
+          </div>
         </div>
       </div>
       {tutorialOpen && (
@@ -86,7 +86,7 @@ export default function Start({phase, setPhase}: StartProps) {
             </div>
             <button
               onClick={() => setTutorialOpen(false)}
-              className="mt-4 w-full bg-green-400 hover:bg-green-400 text-black font-semibold py-2 rounded transition"
+              className="mt-4 w-full bg-green-400 hover:bg-black hover:text-green-400 text-black font-semibold py-2 rounded transition"
             >
               Got it
             </button>

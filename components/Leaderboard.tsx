@@ -17,7 +17,6 @@ const mockLeaderboard: Entry[] = [
   { name: 'neo.trinity', score: 4200 },
   { name: 'zero.cool', score: 3900 },
   { name: 'steph.yao', score: 3777 },
-  { name: 'janet.guo', score: 3699 },
   { name: 'crash.override', score: 3550 },
   { name: 'acid.burn', score: 3400 },
   { name: 'cypher.hex', score: 3200 },
@@ -33,7 +32,7 @@ export default function Leaderboard({ phase, setPhase }: LeaderboardProps) {
 
   return (
     <div className="min-h-screen text-green-400 font-mono flex flex-col items-center justify-center px-4">
-      <h1 className="text-[50px] md:text-[70px] font-bold mb-4 animate-pulse text-green-500">🏆 LEADERBOARD 🏆</h1>
+      <h1 className="text-[50px] md:text-[70px] font-bold mb-4 animate-pulse text-green-500">LEADERBOARD</h1>
 
       {entries.length === 0 ? (
         <div className="text-lg animate-pulse tracking-wider">Loading...</div>

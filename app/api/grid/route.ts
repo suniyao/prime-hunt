@@ -6,8 +6,8 @@ export async function GET() {
   const GRID_SIZE = 4;
   // Dynamically generate seed from today's date
   const today = new Date();
-  const seed = '2025-07-04'
-  // const seed = today.toISOString().slice(0, 10); // 'YYYY-MM-DD'
+  // const seed = '2025-07-04'
+  const seed = today.toISOString().slice(0, 10); // 'YYYY-MM-DD'
 
   // Seeded random number generator
   const rng = seedrandom(seed);

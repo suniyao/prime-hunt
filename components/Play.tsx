@@ -5,7 +5,7 @@ import clsx from 'clsx';
 import { getScore } from '@/utils/score';
 import { isPrime } from '@/utils/isPrime';
 import ScoreBar from './ScoreBar';
-import Countdown from './CountDown';
+import Countdown from './Countdown';
 const correctSound = '/correct.mp3';
 
 type Pos = { row: number; col: number };

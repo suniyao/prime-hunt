@@ -1,6 +1,6 @@
 'use client'
 import { useState } from "react"
-import Countdown from "./CountDown"
+import Countdown from "./Countdown"
 import PrimeHunt from "./Play"
 import Start from "./Start"
 import Play from "./Play"

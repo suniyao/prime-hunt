@@ -1,6 +1,6 @@
 import { useRef, useEffect } from "react";
 
-const LetterGlitch = ({
+const LetterGlitchBackground = ({
   glitchColors = ["#2b4539", "#61dca3", "#61b3dc"],
   glitchSpeed = 50,
   centerVignette = false,
@@ -247,4 +247,4 @@ const mathySymbols = [
   );
 };
 
-export default LetterGlitch;
+export default LetterGlitchBackground;

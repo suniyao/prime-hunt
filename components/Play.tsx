@@ -11,7 +11,6 @@ const correctSound = '/correct.mp3';
 type Pos = { row: number; col: number };
 
 type PlayProps = {
-  phase: 'start' | 'play' | 'finish',
   setPhase: React.Dispatch<React.SetStateAction<'start' | 'play' | 'finish'>>
   found: Set<string>,
   setFound: React.Dispatch<React.SetStateAction<Set<string>>>
@@ -19,13 +18,10 @@ type PlayProps = {
   setScore: React.Dispatch<React.SetStateAction<number>>
   numOfPrimes: number, 
   setNumOfPrimes: React.Dispatch<React.SetStateAction<number>>
-  // const [found, setFound] = useState<Set<string>>(new Set());
-  // const [score, setScore] = useState<number>(0);
-  // const [numOfPrimes, setNumOfPrimes] = useState<number>(0);
 }
 
 
-export default function Play({ phase , setPhase, found, setFound, score, setScore, numOfPrimes, setNumOfPrimes }: PlayProps){
+export default function Play({ setPhase, found, setFound, score, setScore, numOfPrimes, setNumOfPrimes }: PlayProps){
   const [grid, setGrid] = useState<number[][]>([]);
   const [gridSize, setGridSize] = useState<number>(NaN);
   const [seed, setSeed] = useState<string | null>(null);

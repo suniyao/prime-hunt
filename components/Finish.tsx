@@ -3,17 +3,12 @@ import ScoreBar from "./ScoreBar";
 import CopyButton from "./CopyButton";
 
 type FinishProps = {
-  phase: 'start' | 'play' | 'finish',
-  setPhase: React.Dispatch<React.SetStateAction<'start' | 'play' | 'finish'>>
   found: Set<string>,
-  setFound: React.Dispatch<React.SetStateAction<Set<string>>>
   score: number,
-  setScore: React.Dispatch<React.SetStateAction<number>>
   numOfPrimes: number, 
-  setNumOfPrimes: React.Dispatch<React.SetStateAction<number>>
 };
 
-export default function Finish({phase, setPhase, found, setFound, score, setScore, numOfPrimes, setNumOfPrimes}: FinishProps) {
+export default function Finish({found, score, numOfPrimes}: FinishProps) {
   const today = new Date();
   // const seed = '2025-07-04'
   const date = today.toISOString().slice(0, 10); // 'YYYY-MM-DD'

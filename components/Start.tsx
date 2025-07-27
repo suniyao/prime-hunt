@@ -3,6 +3,7 @@ import { useState } from "react"
 import { Info } from "lucide-react"
 import Image from "next/image"
 import clsx from "clsx"
+import InfoBlock from "./InfoBlock"
 
 type StartProps = {
   setPhase: React.Dispatch<React.SetStateAction<'start' | 'play' | 'finish'>>
@@ -91,6 +92,9 @@ export default function Start({setPhase}: StartProps) {
           </div>
         </div>
       )}
+      <div className="absolute bottom-5 right-5">
+        <InfoBlock />
+      </div>
     </div>
   )
 }
